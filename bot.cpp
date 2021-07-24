@@ -21,12 +21,12 @@ public:
 		hex_count = 0;
 	}
 	void addEdge(int idx){
+		if(edges[idx]==0) hex_count++;
 		edges[idx] = 1;
-		hex_count++;
 	}
 	void removeEdge(int idx){
+		if(edges[idx]!=0) hex_count--;
 		edges[idx] = 0;
-		hex_count--;
 	}
 };
 
@@ -172,15 +172,45 @@ int main(void){
 							grid[mapped[0]][mapped[1]].removeEdge(mapped[2]);
 						}
 						grid[cell.x][cell.y].removeEdge(e);
-						if(len+len2 < mi){
-							best={cell, e};
+						mi = min(len+len2, mi);
+					}
+					idx++;
+				}
+
+			}
+			vector<pair<Hexagon, int>> good;
+			for(auto cell:edge_ct[4]){
+				int idx=0;
+				for(auto edge:cell.edges){
+					if(edge==0){
+						int e = idx;
+						grid[cell.x][cell.y].addEdge(e);
+						vector<int> mapped;
+						bool d_upd = false;
+						if(bijection.find({cell.x, cell.y, e})!=bijection.end()){
+						 	mapped = bijection[{cell.x, cell.y, e}];
+							grid[mapped[0]][mapped[1]].addEdge(mapped[2]);
+							d_upd = true;
+						}
+						int len = dfs(cell.x, cell.y, 0);
+						int len2 = 0;
+						//cout<<len<<endl;
+						if(d_upd){
+							len2 = dfs(mapped[0], mapped[1], 0);
+							grid[mapped[0]][mapped[1]].removeEdge(mapped[2]);
+						}
+						grid[cell.x][cell.y].removeEdge(e);
+						if(len+len2==mi){
+							good.push_back({cell, e});
 						}
 					}
 					idx++;
 				}
+				
 			}
-			assert(grid[best.first.x][best.first.y].edges[best.second]==0);
-			cout<<best.first.x<<" "<<best.first.y<<" "<<best.second<<endl;
+			//assert(grid[best.first.x][best.first.y].edges[best.second]==0);
+			pair<Hexagon, int> chosen = good[rand()%good.size()];
+			cout<<chosen.first.x<<" "<<chosen.first.y<<" "<<chosen.second<<endl;
 			//cout<<"worst"<<endl;
 			return 0;
 		}
